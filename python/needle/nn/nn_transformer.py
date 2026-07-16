@@ -111,7 +111,7 @@ class MultiHeadAttention(Module):
         ### BEGIN YOUR SOLUTION
         qk = self.matmul(q, k)/np.sqrt(q_dim)
         if self.causal:
-            mask = self.create_causal_mask(queries_len, keys_values_len)
+            mask = self.create_causal_mask(queries_len, keys_values_len, device=self.device)
             qk = qk+mask.broadcast_to(qk.shape)
         probs = self.softmax(qk)
         probs = self.dropout(probs)
