@@ -150,6 +150,7 @@ void EwiseSetitem(const CudaArray& a, CudaArray* out, std::vector<int32_t> shape
    *   offset: offset of the *out* array (not a, which has zero offset, being compact)
    */
   /// BEGIN SOLUTION
+  size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
   if (gid < size) {
     int ndim = shape.size;
     size_t out_idx = offset;
