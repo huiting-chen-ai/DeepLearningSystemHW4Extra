@@ -217,7 +217,7 @@ class LayerNorm1d(Module):
         ### BEGIN YOUR SOLUTION
         ndim = len(x.shape)
         expect_x = ops.divide_scalar(ops.summation(x, axes=(ndim-1, )), self.dim)
-        mean_shape = list(x.shape[0])
+        mean_shape = list(x.shape)
         mean_shape[-1] = 1
         expect_x = ops.broadcast_to(ops.reshape(expect_x, tuple(mean_shape)), x.shape)
         up = x-expect_x
