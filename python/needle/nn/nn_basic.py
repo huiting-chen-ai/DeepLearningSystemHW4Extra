@@ -103,9 +103,9 @@ class Linear(Module):
         mul = ops.matmul(X, self.weight)
         if self.bias is None:
             return mul
-        shape = list(X.shape)
+        shape = list(mul.shape)
         shape[-1] = self.out_features
-        return ops.add(mul, ops.broadcast_to(self.bias, shape))
+        return ops.add(mul, ops.broadcast_to(self.bias.reshape(shape), mul.shape))
         ### END YOUR SOLUTION
 
 
