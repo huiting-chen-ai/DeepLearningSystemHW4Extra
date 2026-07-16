@@ -200,8 +200,8 @@ void ScalarSetitem(size_t size, scalar_t val, CudaArray* out, std::vector<int32_
    *   offset: offset of the out array
    */
   /// BEGIN SOLUTION
-  CudaDims dim = CudaOneDim(a.size);
-  EwiseSetitemKernel<<<dim.grid, dim.block>>>(a.ptr, out->ptr, a.size, VecToCuda(shape),
+  CudaDims dim = CudaOneDim(size);
+  ScalarSetitemKernel<<<dim.grid, dim.block>>>(val, out->ptr, size, VecToCuda(shape),
                                          VecToCuda(strides), offset);
   /// END SOLUTION
 }
