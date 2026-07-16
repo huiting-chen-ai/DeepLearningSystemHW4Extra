@@ -112,7 +112,7 @@ class MultiHeadAttention(Module):
         qk = self.matmul(q, k)/np.sqrt(q_dim)
         probs = self.softmax(qk)
         probs = self.dropout(probs)
-        result = self.matmul(probs, v.transpose(2, 3))
+        result = self.matmul(probs, v.transpose((2, 3)))
         ### END YOUR SOLUTION
 
         return result, probs
