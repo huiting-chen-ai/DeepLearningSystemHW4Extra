@@ -244,7 +244,18 @@ class TransformerLayer(Module):
         self.dtype = dtype
 
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        self.layer1 = Sequential(
+            AttentionLayer(q_features, num_head, dim_head, dropout=dropout, causal=causal, device=device, dtype=dtype),
+            Dropout(dropout)
+        )
+        self.layer2 = Sequential(
+            LayerNorm1d(dim_head, device=device, dtype=dtype),
+            Linear(q_features, hidden_size, device=device, dtype=dtype),
+            ReLU(),
+            Dropout(dropout),
+            Linear(hidden_size, q_features, device=device, dtype=dtype),
+            Dropout()
+        )
         ### END YOUR SOLUTION
 
     def forward(
@@ -260,7 +271,8 @@ class TransformerLayer(Module):
         batch_size, seq_len, x_dim = x.shape
 
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        x = self.layer1(x)+x
+        x = self.layer2(x)+x
         ### END YOUR SOLUTION
 
         return x
