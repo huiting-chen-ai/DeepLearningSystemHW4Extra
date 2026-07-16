@@ -249,12 +249,12 @@ class TransformerLayer(Module):
             Dropout(dropout)
         )
         self.layer2 = Sequential(
-            LayerNorm1d(dim_head, device=device, dtype=dtype),
+            LayerNorm1d(q_features, device=device, dtype=dtype),
             Linear(q_features, hidden_size, device=device, dtype=dtype),
             ReLU(),
             Dropout(dropout),
             Linear(hidden_size, q_features, device=device, dtype=dtype),
-            Dropout()
+            Dropout(dropout)
         )
         ### END YOUR SOLUTION
 
