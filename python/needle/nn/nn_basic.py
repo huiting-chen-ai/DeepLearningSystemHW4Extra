@@ -209,25 +209,28 @@ class LayerNorm1d(Module):
         self.dim = dim
         self.eps = eps
         ### BEGIN YOUR SOLUTION
-        self.weight = Parameter(init.ones(dim, requires_grad=True))
-        self.bias = Parameter(init.zeros(dim, requires_grad=True))
+        self.weight = Parameter(init.ones(dim, requires_grad=True, device=device))
+        self.bias = Parameter(init.zeros(dim, requires_grad=True, device=device))
         ### END YOUR SOLUTION
 
     def forward(self, x: Tensor) -> Tensor:
         ### BEGIN YOUR SOLUTION
-        batch_size = x.shape[0]
-        expect_x = ops.divide_scalar(ops.summation(x, axes=(1, )), self.dim)
-        expect_x = ops.broadcast_to(ops.reshape(expect_x, (batch_size, 1)), x.shape)
+        ndim = len(x.shape)
+        expect_x = ops.divide_scalar(ops.summation(x, axes=(ndim-1, )), self.dim)
+        mean_shape = list(x.shape[0])
+        mean_shape[-1] = 1
+        expect_x = ops.broadcast_to(ops.reshape(expect_x, tuple(mean_shape)), x.shape)
         up = x-expect_x
 
-        variance_x = ops.reshape(ops.summation(ops.power_scalar(up, 2), axes=(1, )), (batch_size, 1))
+        variance_x = ops.reshape(ops.summation(ops.power_scalar(up, 2), axes=(ndim-1, )), mean_shape)
         variance_x = ops.divide_scalar(variance_x, self.dim)
         below = ops.power_scalar(ops.add_scalar(variance_x, self.eps), 0.5)
         below = ops.broadcast_to(below, x.shape)
 
         normal_x = ops.divide(up, below)
-        broadcast_weight = ops.broadcast_to(ops.reshape(self.weight, (1, self.dim)), x.shape)
-        broadcast_bias = ops.broadcast_to(ops.reshape(self.bias, (1, self.dim)), x.shape)
+        weight_shape = [1] * (ndim - 1) + [self.dim]
+        broadcast_weight = ops.broadcast_to(ops.reshape(self.weight, weight_shape), x.shape)
+        broadcast_bias = ops.broadcast_to(ops.reshape(self.bias, weight_shape), x.shape)
         return normal_x*broadcast_weight+broadcast_bias
         ### END YOUR SOLUTION
 
