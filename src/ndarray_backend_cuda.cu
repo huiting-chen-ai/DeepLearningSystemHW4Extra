@@ -134,8 +134,21 @@ void Compact(const CudaArray& a, CudaArray* out, std::vector<int32_t> shape,
                                          VecToCuda(strides), offset);
 }
 
+__global__ void EwiseSetitemKernel(const scalar_t* a, scalar_t* out, size_t size, CudaVec shape,
+                              CudaVec strides, size_t offset) {
+  size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
 
-
+  if (gid < size) {
+    int ndim = shape.size;
+    size_t out_idx = offset;
+    size_t temp = gid;
+    for (int d = ndim - 1; d >= 0; --d) {
+      out_idx += (temp % shape.data[d]) * strides.data[d];
+      temp /= shape.data[d];
+    }
+    out[out_idx] = a[gid];
+  }
+}
 void EwiseSetitem(const CudaArray& a, CudaArray* out, std::vector<int32_t> shape,
                   std::vector<int32_t> strides, size_t offset) {
   /**
@@ -148,38 +161,6 @@ void EwiseSetitem(const CudaArray& a, CudaArray* out, std::vector<int32_t> shape
    *   shape: shapes of each dimension for a and out
    *   strides: strides of the *out* array (not a, which has compact strides)
    *   offset: offset of the *out* array (not a, which has zero offset, being compact)
-   */
-  /// BEGIN SOLUTION
-  size_t gid = blockIdx.x * blockDim.x + threadIdx.x;
-  if (gid < size) {
-    int ndim = shape.size;
-    size_t out_idx = offset;
-    size_t temp = gid;
-    for (int d = ndim - 1; d >= 0; --d) {
-      out_idx += (temp % shape.data[d]) * strides.data[d];
-      temp /= shape.data[d];
-    }
-    out[out_idx] = a[gid];
-  }
-  /// END SOLUTION
-}
-
-
-
-void ScalarSetitem(size_t size, scalar_t val, CudaArray* out, std::vector<int32_t> shape,
-                   std::vector<int32_t> strides, size_t offset) {
-  /**
-   * Set items is a (non-compact) array
-   * 
-   * Args:
-   *   size: number of elements to write in out array (note that this will note be the same as
-   *         out.size, because out is a non-compact subset array);  it _will_ be the same as the 
-   *         product of items in shape, but covenient to just pass it here.
-   *   val: scalar value to write to
-   *   out: non-compact array whose items are to be written
-   *   shape: shapes of each dimension of out
-   *   strides: strides of the out array
-   *   offset: offset of the out array
    */
   /// BEGIN SOLUTION
   CudaDims dim = CudaOneDim(a.size);
@@ -219,11 +200,13 @@ void ScalarSetitem(size_t size, scalar_t val, CudaArray* out, std::vector<int32_
    *   offset: offset of the out array
    */
   /// BEGIN SOLUTION
-  CudaDims dim = CudaOneDim(size);
-  ScalarSetitemKernel<<<dim.grid, dim.block>>>(val, out->ptr, size, VecToCuda(shape),
+  CudaDims dim = CudaOneDim(a.size);
+  EwiseSetitemKernel<<<dim.grid, dim.block>>>(a.ptr, out->ptr, a.size, VecToCuda(shape),
                                          VecToCuda(strides), offset);
   /// END SOLUTION
 }
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Elementwise and scalar operations
 ////////////////////////////////////////////////////////////////////////////////
