@@ -320,7 +320,7 @@ class Transformer(Module):
 
         ### BEGIN YOUR SOLUTION
         bs, seq_len, _ = x.shape
-        emb = Tensor(np.arange(seq_len).reshape(-1, 1).broadcast_to((seq_len, bs)), device=self.device, dtype=self.dtype)
+        emb = Tensor(np.broadcast_to(np.arange(seq_len).reshape(-1, 1), (seq_len, bs)), device=self.device, dtype=self.dtype)
         emb = self.embedding(emb).transpose((0, 1))
         x = x + emb
         x = self.transformerlayer(x)
